@@ -3,6 +3,7 @@ var Gpio = require('onoff').Gpio;
 var Twitter = require('twitter');
 const dotenv = require('dotenv');
 
+var numbertweets = 0;
 dotenv.config();
 var LED = new Gpio(24, 'out');
 var client = new Twitter({
@@ -12,7 +13,8 @@ var client = new Twitter({
   access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
 });
 
-var params = {screen_name: 'tammi_jo_'};
+var follow = {follow: process.env.FOLLOW_USERID}
+var followUserName = process.env.FOLLOW_USERNAME;
 console.log("starting robot");
 Cylon.robot({
     connections: {
@@ -21,16 +23,16 @@ Cylon.robot({
     
      work: function(raspi) {
         console.log("calling twitter");
-        client.stream('statuses/filter', { follow: '25073877'}, function (stream) {
-            //console.log("client stream created");
-            console.log("Checking for trump tweets");
+        client.stream('statuses/filter', { follow}, function (stream) {
+            console.log("Checking for @" + followUserName + " tweets");
             stream.on('data', function (data) {
-                if (data.user.screen_name=="realDonaldTrump")
+                if (data.user.screen_name==followUserName)
                 {
-                    console.log("Trump Tweeted");
-                    console.log(data.user.screen_name + " :: " + data.text);
+                    numbertweets++;
                     
-                    //raspi.led.toggle;
+                    console.log("@" + followUserName + " Tweeted");
+                    console.log("@" + data.user.screen_name + " :: " + data.text);
+                    
                     LED.writeSync(1); // turn light on
                     setTimeout(function () {LED.writeSync(0);}, 2000);
                 }
